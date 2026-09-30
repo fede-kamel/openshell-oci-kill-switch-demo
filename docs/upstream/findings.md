@@ -7,7 +7,7 @@ and filed upstream the same day:
 | Finding | Upstream issue |
 |---|---|
 | `sandbox exec` reads piped stdin to EOF before starting the command | [NVIDIA/OpenShell#3993](https://github.com/NVIDIA/OpenShell/issues/3993), fix in [PR #4006](https://github.com/NVIDIA/OpenShell/pull/4006) |
-| First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request | [NVIDIA/OpenShell#3994](https://github.com/NVIDIA/OpenShell/issues/3994) |
+| First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request | [NVIDIA/OpenShell#3994](https://github.com/NVIDIA/OpenShell/issues/3994); already fixed on `main` by #3819 (unreleased at 0.1.2) |
 
 ## 1. `sandbox exec` blocks on stdin EOF before starting the command
 
@@ -62,7 +62,10 @@ and `kubectl exec`, where stdin is only read when asked.
 
 ## 2. First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request
 
-**Severity:** low. Filed as #3994.
+**Severity:** low. Filed as #3994. **Resolved on `main`** by b8932d43b
+`Fix/startup provider readiness (#3819)`, merged 2026-09-30, after the 0.1.2
+release. Verified: a gateway and supervisor built from `main` show no first-poll
+detection; 0.1.2 shows it 4 of 4 times.
 
 **What it looked like at first.** Sandbox A (`oci-agent`) was mid-request
 when sandbox B (`oci-agent-2`) was created with the same provider, and A's
@@ -76,12 +79,15 @@ providers). The reload advances the policy generation and closes tunnels
 opened before it. In the real run, A's first-poll reload landed at
 start + 10.9 s while a request was in flight.
 
-**Likely cause (source).** `crates/openshell-supervisor/src/lib.rs`:
-`current_provider_env_revision` is seeded from the local credential
-snapshot's revision, which never equals the server-computed
-`provider_env_revision`, so the first comparison in the poll loop is always
-unequal (or `provider_readiness.needs_environment` is true for the initial
-identity).
+**Actual cause (confirmed).** In 0.1.2 the startup path installs the
+captured provider credentials without recording them in the
+`ProviderReadinessTracker`, so the tracker stays at `WaitingForCredentials`
+with a default identity. On the first poll `needs_environment(...)` is true
+although the revision matches, the environment is refetched and reinstalled,
+the policy generation advances, and tunnels opened before it are closed.
+The gateway side was never the cause: a server test added during the
+investigation shows `GetSandboxConfig` and `GetSandboxProviderEnvironment`
+agree on `policy_hash`, `provider_env_revision`, and the attachment epoch.
 
 **Original observation.** A's supervisor logged:
 
