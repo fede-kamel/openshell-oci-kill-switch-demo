@@ -1,14 +1,35 @@
 # Findings for the OpenShell maintainers
 
-Candidate issues observed on OpenShell 0.1.2 (Homebrew gateway, Docker
-driver on Rancher Desktop, macOS 26) on 2026-09-30. Neither has been filed
-yet. Each entry has the evidence collected and a proposed reproduction so it
-can be filed with the repository's bug template (User Story, Problem
-Statement, Impact, Acceptance Criteria, reproduction, environment).
+Issues observed on OpenShell 0.1.2 (Homebrew gateway, Docker driver on
+Rancher Desktop, macOS 26) on 2026-09-30, probed with dedicated sandboxes,
+and filed upstream the same day:
+
+| Finding | Upstream issue |
+|---|---|
+| `sandbox exec` reads piped stdin to EOF before starting the command | [NVIDIA/OpenShell#3993](https://github.com/NVIDIA/OpenShell/issues/3993) |
+| First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request | [NVIDIA/OpenShell#3994](https://github.com/NVIDIA/OpenShell/issues/3994) |
 
 ## 1. `sandbox exec` blocks on stdin EOF before starting the command
 
-**Severity:** medium (usability; hangs automation indefinitely).
+**Severity:** medium (usability; hangs automation indefinitely). Filed as #3993.
+
+**Root cause (source).** `crates/openshell-cli/src/run.rs`, `sandbox_exec_grpc`:
+when stdin is not a terminal, a `spawn_blocking` task does `read_to_end` on
+stdin (capped at 4 MiB) and only then is the `ExecSandbox` request built.
+The comment explains the intent: keep a unary request for small pipes so
+older gateways, whose interactive RPC closes the SSH channel at stdin EOF,
+keep working. `--no-tty` does not bypass it.
+
+**Probe results (2026-09-30, sandbox `probe-a`).**
+
+```
+never-closing pipe as stdin            -> hang (killed by timeout)
+same with --no-tty                     -> hang
+stdin closed (</dev/null)              -> 0.1 s
+echo hi | exec -- cat                  -> prints hi, 0.1 s
+EOF delivered after 5 s                -> command starts 5 s later (waits for EOF)
+gateway ExecSandbox RPCs               -> only for the three non-hanging cases
+```
 
 **Observed.** With a non-terminal stdin that never reaches EOF, the CLI
 blocks forever and never sends `ExecSandbox`:
@@ -39,13 +60,30 @@ concurrently (closing remote stdin at EOF, as the docs already describe for
 large input), or add an explicit `--no-stdin` / `-i` model like `docker exec`
 and `kubectl exec`, where stdin is only read when asked.
 
-## 2. Attaching a provider to one sandbox reloads policy in another and closes its in-flight tunnel
+## 2. First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request
 
-**Severity:** low; needs confirmation.
+**Severity:** low. Filed as #3994.
 
-**Observed once.** Sandbox A (`oci-agent`) was mid-request. Sandbox B
-(`oci-agent-2`) was created with the same provider attached. A's supervisor
-logged:
+**What it looked like at first.** Sandbox A (`oci-agent`) was mid-request
+when sandbox B (`oci-agent-2`) was created with the same provider, and A's
+supervisor logged a provider environment change and a stale-generation
+denial. The probe showed the correlation with B was a coincidence.
+
+**What it is.** Every supervisor reports `provider_env_changed:true` on its
+first settings poll, exactly 10 s after start, with the config revision
+unchanged, and even with no provider attached (4 of 4 sandboxes, one without
+providers). The reload advances the policy generation and closes tunnels
+opened before it. In the real run, A's first-poll reload landed at
+start + 10.9 s while a request was in flight.
+
+**Likely cause (source).** `crates/openshell-supervisor/src/lib.rs`:
+`current_provider_env_revision` is seeded from the local credential
+snapshot's revision, which never equals the server-computed
+`provider_env_revision`, so the first comparison in the poll loop is always
+unequal (or `provider_readiness.needs_environment` is true for the initial
+identity).
+
+**Original observation.** A's supervisor logged:
 
 ```
 CONFIG:DETECTED Settings poll: config change detected [old_revision:X new_revision:X policy_changed:false provider_env_changed:true]
@@ -55,16 +93,15 @@ NET:OPEN [MED] DENIED inference.generativeai...:443 [reason:L7 tunnel closed bef
 
 A's request failed with a closed connection although A's policy hash had
 not changed. Closing tunnels on policy change is documented and correct;
-the question is why B's attachment counted as a provider environment change
-for A.
+the defect is that nothing had changed.
 
-**Proposed reproduction.** Create sandbox A with provider P, start a slow
-request from A, create sandbox B with provider P, observe A's supervisor
-log for `provider_env_changed:true` and the stale-generation denial.
+**Reproduction.** Create any sandbox, read its supervisor log, observe the
+detection at start + 10 s. To see the drop, run a request loop from the
+moment the sandbox is Ready and watch for the stale-generation denial.
 
-**Suggested outcome.** If provider handles are per gateway rather than per
-sandbox, document that attachments elsewhere can bump a sandbox's
-generation; otherwise scope the change detection per sandbox.
+**Suggested fix.** Seed the initial revision from the server's value, or
+treat the first observation as the baseline; add a test for the first poll.
+Until then, clients should retry once on a closed connection.
 
 ## Notes that are not bugs
 
