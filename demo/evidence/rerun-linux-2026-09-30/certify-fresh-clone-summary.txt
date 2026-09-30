@@ -1,7 +1,7 @@
 gateway: Status: Connected
 removed provider oci-genai-demo
 removed provider or-demo
-cloned cf7c49e fede-kamel <fkamelhar@gmail.com>
+cloned cf7c49e
 ### OCI — README quick start, verbatim except the key comes from ~/.secrets
 
 ✓ Created provider oci-genai-demo
