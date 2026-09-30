@@ -1,0 +1,13 @@
+== building openshell-demo-agents:local (openai + langchain-openai on the demo's base image)
+== creating sandbox examples-oci with provider oci-genai-demo
+== what the libraries are given
+OCI_GENAI_API_KEY = openshell:resolve:env:v9376103832358030938_OCI_GENAI_API_KEY
+== OpenAI Python SDK
+openai sdk -> A sandbox protects a system or environment from untested or potentially malicious code or activities.
+PASS  openai sdk
+== LangChain with a tool
+langchain tool call -> [('add', {'a': '1234', 'b': '4321'})]
+langchain tool result -> 5555
+PASS  langchain tool call
+ALL EXAMPLES PASSED (oci)
+cleanup: deleted sandbox examples-oci

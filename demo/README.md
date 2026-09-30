@@ -69,15 +69,21 @@ The runbook changes gateway-wide state, so it guards against doing harm:
   one), other sandboxes are running (the lockdown would cut them off too; set
   `SHARED_GATEWAY_OK=1` to accept that), or sandboxes with the demo's names
   exist (set `REPLACE=1` to delete them).
-- **It always cleans up after itself.** On success, failure or Ctrl-C it
-  lifts the lockdown if it set one, stops the worker, and deletes the
-  sandboxes it created (unless `KEEP=1`).
+- **It always cleans up after itself.** On success, failure, Ctrl-C or a
+  termination signal — including one sent to its whole process group by a CI
+  cancel or `timeout` — it lifts the lockdown first if it set one, stops the
+  worker, and deletes the sandboxes it created (unless `KEEP=1`). Only
+  `kill -9` can defeat that; see Troubleshooting in the top-level README.
 - **It stops at the first thing that would make the rest meaningless**: a
   sandbox that will not start, an agent that does not match `agent/agent.py`
   (checked by SHA-256 after upload), an agent that can see something that
   looks like a real key, or an upstream that rejects the first request.
-- **No secret is ever printed.** The key lives in the gateway; the agent only
-  ever sees a placeholder, and `whoami` prints its first four characters.
+- **No secret is ever printed.** The key lives in the gateway and the agent
+  only ever sees a placeholder (`openshell:resolve:env:…`), which `whoami`
+  prints in full because it is a reference, not a secret. Anything else in the
+  key variable is treated as a possible real key: only four characters are
+  shown and the run stops. The agent sends the credential only to its own
+  host, never to the probe's unlisted host.
 
 The agent is uploaded with `openshell sandbox upload` rather than passed in
 an environment variable, because the gateway caps each environment value at
@@ -102,11 +108,15 @@ Requires bash (3.2 or later) and, for timeouts, `timeout` or `gtimeout`.
 2. `whoami`: the placeholder, the CA bundle the sandbox injects, the model, the allowed host.
 3. `ask`: one real completion through the proxy.
 4. `probe`: one allowed request and two that must be denied.
-5. Start the worker loop in the background.
-6. Kill switch: global lockdown (measured until both agents are blocked),
-   lift (measured until both answer again), detach the credential from one
-   agent (measured; the other must keep answering), stop that sandbox.
-7. Evidence: OCSF events from the first sandbox's supervisor.
+5. Start the worker loop (one completion every 5 s, for at most 10 minutes)
+   and wait until it has done real work.
+6. Kill switch, level 1: global lockdown, measured until both agents are
+   refused with a real denial; then lift it, measured until both answer.
+6c. Kill switch, level 2: detach the credential from one agent; the other must
+   keep answering.
+7. Evidence: OCSF events from the first sandbox's supervisor, read before
+   level 3 stops it.
+8. Kill switch, level 3: stop that sandbox; the other stays `Ready`.
 
 ## Gotcha: `sandbox exec` from scripts
 

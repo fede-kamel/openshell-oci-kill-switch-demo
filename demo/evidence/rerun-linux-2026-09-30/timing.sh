@@ -1,4 +1,7 @@
 #!/bin/bash
+# HISTORICAL: kept exactly as it produced timing-trials.txt on 2026-09-30 (Linux only).
+# It passes the agent in an environment variable, which the current agent is too large
+# for, and has no cleanup trap. See ../README.md. Not maintained; do not run it as a tool.
 # How long does a RUNNING agent keep access after each kill switch, versus a fresh exec?
 set -u
 D=$(cd "$(dirname "$0")/../.." && pwd)   # the demo/ directory

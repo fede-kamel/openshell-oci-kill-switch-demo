@@ -7,8 +7,10 @@
 # POST and GET under /api/v1/ only -- so a PUT is refused at the HTTP layer.
 #
 #   openshell provider profile import --file demo/profile/openrouter-python.yaml --global
+#   read -rs OPENROUTER_API_KEY && export OPENROUTER_API_KEY    # paste the key; nothing is echoed
 #   openshell provider create --name or-demo --type openrouter-python \
-#     --credential OPENROUTER_API_KEY="$OPENROUTER_API_KEY"
+#     --credential OPENROUTER_API_KEY                            # the name alone reads it from the environment
+#   unset OPENROUTER_API_KEY
 
 id: openrouter-python
 display_name: OpenRouter (Python agent)

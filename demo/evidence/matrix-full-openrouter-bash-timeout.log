@@ -1,0 +1,114 @@
+
+== 0. Preflight (target: openrouter, provider: or-demo, sandboxes: or-agent, or-agent-2) ==
+openshell 0.1.2
+provider or-demo has type openrouter-python
+preflight ok
+
+== 1. Two agent sandboxes on one gateway, one provider attached to both (openrouter) ==
+$ openshell sandbox create --name or-agent --from ghcr.io/astral-sh/uv:python3.12-bookworm-slim --provider or-demo --detach -- sleep infinity
+$ openshell sandbox create --name or-agent-2 --from ghcr.io/astral-sh/uv:python3.12-bookworm-slim --provider or-demo --detach -- sleep infinity
+waiting for or-agent ready
+waiting for or-agent-2 ready
+agent uploaded and verified in both sandboxes (sha256 612822051e34…)
+$ openshell sandbox list
+NAME        CREATED              PHASE
+e2e-or      2026-09-29 18:04:04  Error
+e2e-multi   2026-09-29 18:19:45  Error
+or-agent    2026-09-30 23:05:06  Ready
+or-agent-2  2026-09-30 23:05:08  Ready
+
+== 2. What the agent can see: a placeholder, not the key ==
+OPENROUTER_API_KEY as seen by the agent : openshell:resolve:env:v6892894447447880484_OPENROUTER_API_KEY
+looks like a real API key               : no — an OpenShell placeholder
+CURL_CA_BUNDLE                          : /run/openshell-supervisor-ca/material/ca-bundle.crt
+DENO_CERT                               : /run/openshell-supervisor-ca/material/ca.crt
+NODE_EXTRA_CA_CERTS                     : /run/openshell-supervisor-ca/material/ca.crt
+REQUESTS_CA_BUNDLE                      : /run/openshell-supervisor-ca/material/ca-bundle.crt
+SSL_CERT_FILE                           : /run/openshell-supervisor-ca/material/ca-bundle.crt
+model                                   : meta-llama/llama-3.3-70b-instruct
+allowed upstream                        : openrouter.ai
+
+== 3. Legitimate work goes through (the proxy injects the real key) ==
+HTTP 200: An autonomous agent should run inside a sandbox to prevent it from causing unintended harm or damage to the external environment, by isolating its execution and limiting its access to sensitive resources and systems.
+
+== 4. The fence: anything off-policy is denied before it leaves the sandbox ==
+allowed : POST chat completions on openrouter.ai           -> HTTP 200                        {"id":"gen-1790809690-E3t2j8EbsPrpU1QfZ137","object":"chat.completion","created":1790809690,"model"
+blocked : GET  an unlisted host (example.com)              -> DENIED               URLError: <urlopen error [Errno 13] Permission denied>
+blocked : PUT  on openrouter.ai (method not in policy)     -> DENIED policy_denied {"binary":"/usr/local/bin/python3.12","detail":"PUT /api/v1/models not permitted by policy","error":"policy_de
+
+== 5. Start the worker loop (one completion every 5 s) ==
+[23:08:56] ok      #1: Everything is on track and going smoothly.
+[23:09:02] ok      #2: Progress is on track and everything is going smoothly!
+
+== 6a. KILL SWITCH, level 1: gateway-wide lockdown (every sandbox, one command) ==
+$ openshell policy set --global --policy ./policies/lockdown.yaml --yes
+✓ Global policy configured (hash: 1b621527d93a, settings revision: 35)
+  -> or-agent blocked after 45 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+  -> or-agent-2 blocked after 45 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+[23:10:31] BLOCKED #19: URLError: <urlopen error [Errno 13] Permission denied>
+[23:10:36] BLOCKED #20: URLError: <urlopen error [Errno 13] Permission denied>
+
+== 6b. ...and it is reversible: lift the lockdown ==
+$ openshell policy delete --global --yes
+✓ Deleted global setting policy (revision 36)
+  -> or-agent reachable after 92 s: HTTP 200: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  -> or-agent-2 reachable after 45 s: HTTP 200: Yes, I'm still here. I didn't receive a question or prompt from you yet, so I didn't have a chance to 
+[23:12:45] ok      #37: Progress is on track and exceeding expectations!
+[23:12:52] ok      #38: Progress is on track and things are looking great!
+
+== 6c. KILL SWITCH, level 2: take the credential away from ONE sandbox ==
+$ openshell sandbox provider detach or-agent or-demo --wait
+or-agent / or-demo: revoked (unspecified)
+  Receipt: e7cfbdc0-fe75-4f5e-82b2-5be8b6872c10
+  Persisted: 2026-09-30T23:12:54.820310882Z
+  Installed: credentials=true, policy=true, future process environment=true
+  Wait: complete
+  -> or-agent blocked after 45 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+  -> or-agent-2 reachable after 45 s: HTTP 200: Yes, I'm still here. I don't have a physical presence, so I don't have the ability to leave or take br
+[23:14:20] BLOCKED #55: URLError: <urlopen error [Errno 13] Permission denied>
+[23:14:25] BLOCKED #56: URLError: <urlopen error [Errno 13] Permission denied>
+
+== 7. Evidence: OCSF events from the first agent's supervisor (read before level 3 stops it) ==
+2026-09-30T23:13:59.723Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:13:59.725Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T23:14:04.875Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:14:04.878Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T23:14:09.977Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:14:09.980Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T23:14:15.082Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:14:15.083Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T23:14:20.175Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:14:20.176Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T23:14:25.273Z OCSF NET:REFUSE [MED] DENIED openrouter.ai [reason:policy_dns_ineligible]
+2026-09-30T23:14:25.275Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> openrouter.ai:443 [reason:transparent_tcp_policy_denied]
+(247 events; full log: ./out/ocsf.log)
+
+== 8. KILL SWITCH, level 3: stop the sandbox (workspace kept for forensics) ==
+$ openshell sandbox stop or-agent
+✓ Stopped sandbox or-agent
+NAME        CREATED              PHASE
+e2e-or      2026-09-29 18:04:04  Error
+e2e-multi   2026-09-29 18:19:45  Error
+or-agent    2026-09-30 23:05:06  Stopped
+or-agent-2  2026-09-30 23:05:08  Ready
+
+(worker log: ./out/worker.log)
+
+== Summary (openrouter) ==
+PASS  the agent holds a placeholder, not the key
+PASS  a real request succeeds through the proxy
+PASS  the allowed request is allowed
+PASS  an unlisted host is refused at connect
+PASS  a disallowed method gets 403 policy_denied
+PASS  lockdown blocks or-agent
+PASS  lockdown blocks or-agent-2
+PASS  lifting restores or-agent
+PASS  lifting restores or-agent-2
+PASS  detach blocks or-agent
+PASS  detach leaves or-agent-2 working
+PASS  stop leaves or-agent Stopped
+PASS  stop leaves or-agent-2 Ready
+ALL 13 CHECKS PASSED
+cleanup: deleted sandbox or-agent
+cleanup: deleted sandbox or-agent-2
+(session log: ./out/demo-20260930-190506-2522821.log)

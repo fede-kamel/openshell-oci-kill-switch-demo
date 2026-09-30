@@ -1,0 +1,13 @@
+== building openshell-demo-agents:local (openai + langchain-openai on the demo's base image)
+== creating sandbox examples-openrouter with provider or-demo
+== what the libraries are given
+OPENROUTER_API_KEY = openshell:resolve:env:v6892894447447880484_OPENROUTER_API_KEY
+== OpenAI Python SDK
+openai sdk -> A sandbox protects a system or application from the potential harm of untested or untrusted code.
+PASS  openai sdk
+== LangChain with a tool
+langchain tool call -> [('add', {'a': 1234, 'b': 4321})]
+langchain tool result -> 5555
+PASS  langchain tool call
+ALL EXAMPLES PASSED (openrouter)
+cleanup: deleted sandbox examples-openrouter

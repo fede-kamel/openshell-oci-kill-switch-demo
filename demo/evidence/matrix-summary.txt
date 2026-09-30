@@ -1,0 +1,33 @@
+lint-ok
+### 1. full run, TARGET=oci
+  PASS  13/13, exit 0
+  PASS  no global policy in force
+  PASS  no demo sandboxes left
+  PASS  no worker process left
+### 2. full run, TARGET=openrouter, pure-bash timeout fallback (as on macOS without coreutils)
+  PASS  13/13, exit 0
+  PASS  no global policy in force
+  PASS  no demo sandboxes left
+  PASS  no worker process left
+### 3. missing provider
+  PASS  aborted at preflight, exit 1
+  PASS  no global policy in force
+  PASS  no demo sandboxes left
+  PASS  no worker process left
+### 4. SIGTERM to the whole process group during the lockdown
+  PASS  lockdown was in force; sent SIGTERM to process group 2593709
+    cleanup: lifted the global lockdown this run set
+    cleanup: deleted sandbox or-agent
+    cleanup: deleted sandbox or-agent-2
+  PASS  no global policy in force
+  PASS  no demo sandboxes left
+  PASS  no worker process left
+### 5. examples on both targets
+  PASS  examples pass on oci
+  PASS  examples pass on openrouter
+  PASS  no global policy in force
+  PASS  no demo sandboxes left
+  PASS  no worker process left
+
+MATRIX PASSED
+

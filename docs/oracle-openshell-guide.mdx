@@ -104,7 +104,7 @@ an environment variable rather than typing it into the shell history:
 openshell provider create \
   --name my-oci-genai \
   --type oci-genai \
-  --credential OCI_GENAI_API_KEY="$OCI_GENAI_API_KEY"
+  --credential OCI_GENAI_API_KEY   # the name alone reads the value from your environment
 ```
 
 The key is compartment-scoped, so no `opc-compartment-id` header or

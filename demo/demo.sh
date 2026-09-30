@@ -26,10 +26,15 @@
 # names first), SHARED_GATEWAY_OK=1 (run even with other sandboxes running), and
 # AGENT_BASE_URL / AGENT_MODEL / AGENT_KEY_ENV to point the agent elsewhere.
 set -u
+# A signal sent to the whole process group (CI cancel, `timeout`, an IDE stop
+# button) also reaches the log's tee. Keep tee alive and ignore SIGPIPE so the
+# cleanup below always gets to lift the lockdown.
+trap '' PIPE
+export NO_COLOR=1          # the CLI's tables are parsed below; colour codes would break that
 D=$(cd "$(dirname "$0")" && pwd)
 OUT="$D/out"; mkdir -p "$OUT"
-LOG="$OUT/demo-$(date +%Y%m%d-%H%M%S).log"
-exec > >(tee "$LOG") 2>&1
+LOG="$OUT/demo-$(date +%Y%m%d-%H%M%S)-$$.log"
+exec > >(trap '' INT TERM HUP; exec tee "$LOG") 2>&1
 
 TARGET=${TARGET:-oci}
 case "$TARGET" in
@@ -59,7 +64,16 @@ fi
 if command -v timeout >/dev/null 2>&1; then T=timeout
 elif command -v gtimeout >/dev/null 2>&1; then T=gtimeout
 else T=; fi
-t() { local s=$1; shift; if [ -n "$T" ]; then "$T" "$s" "$@"; else "$@"; fi; }
+[ "${DEMO_BASH_TIMEOUT:-0}" = 1 ] && T=   # test hook: force the pure-bash fallback below
+t() {  # t <seconds> <command...>: run with a time limit
+  local s=$1; shift
+  if [ -n "$T" ]; then "$T" "$s" "$@"; return; fi
+  "$@" & local p=$!
+  ( sleep "$s"; kill -TERM "$p" 2>/dev/null ) & local w=$!
+  wait "$p"; local rc=$?
+  kill "$w" 2>/dev/null; wait "$w" 2>/dev/null
+  return "$rc"
+}
 
 step() { printf '\n\033[1m== %s ==\033[0m\n' "$*"; }
 run()  { printf '$ %s\n' "$*"; "$@"; }
@@ -78,21 +92,28 @@ agent() { ex "$SANDBOX" "$PY" "$AGENT" "$@"; }
 # --- cleanup: always lift our lockdown, stop the worker, remove our sandboxes ---
 LOCKDOWN=0; WORKER=; CREATED=()
 cleanup() {
-  local rc=$?
-  trap - EXIT INT TERM
+  local rc=$? lifted=
+  trap - EXIT INT TERM HUP
+  # Lift the lockdown before anything else, including printing.
   if [ "$LOCKDOWN" = 1 ]; then
-    echo; echo "cleanup: lifting the global lockdown this run set"
-    openshell policy delete --global --yes >/dev/null 2>&1 || echo "cleanup: WARNING could not delete the global policy; run: openshell policy delete --global --yes"
+    if openshell policy delete --global --yes >/dev/null 2>&1; then lifted=yes; else lifted=no; fi
   fi
   [ -n "$WORKER" ] && kill "$WORKER" 2>/dev/null
+  [ "$lifted" = yes ] && { echo; echo "cleanup: lifted the global lockdown this run set"; }
+  [ "$lifted" = no ] && echo "cleanup: WARNING could not delete the global policy; run: openshell policy delete --global --yes"
   if [ "${KEEP:-0}" != 1 ]; then
-    for sb in ${CREATED[@]+"${CREATED[@]}"}; do openshell sandbox delete "$sb" >/dev/null 2>&1 && echo "cleanup: deleted sandbox $sb"; done
+    for sb in ${CREATED[@]+"${CREATED[@]}"}; do
+      if openshell sandbox delete "$sb" >/dev/null 2>&1; then echo "cleanup: deleted sandbox $sb"
+      else echo "cleanup: WARNING could not delete sandbox $sb; run: openshell sandbox delete $sb"; fi
+    done
   fi
   echo "(session log: $LOG)"
   exit "$rc"
 }
 trap cleanup EXIT
-trap 'exit 130' INT TERM
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 
 # Poll a sandbox until its request is blocked (or allowed again); report how long that took.
 wait_state() {  # wait_state blocked|open <sandbox>  -> returns 0 when reached
@@ -100,7 +121,7 @@ wait_state() {  # wait_state blocked|open <sandbox>  -> returns 0 when reached
   while :; do
     out=$(ex "$sb" "$PY" "$AGENT" ask "Are you still there?" 2>&1 | tail -n 1)
     case "$want:$out" in
-      blocked:*"HTTP 0:"*|blocked:*"HTTP 403"*) echo "  -> $sb blocked after $(( $(date +%s) - start )) s: $out" | cut -c1-150; return 0 ;;
+      blocked:*"Permission denied"*|blocked:*"HTTP 403"*"policy_denied"*) echo "  -> $sb blocked after $(( $(date +%s) - start )) s: $out" | cut -c1-150; return 0 ;;
       open:*"HTTP 200"*)                         echo "  -> $sb reachable after $(( $(date +%s) - start )) s: $out" | cut -c1-150; return 0 ;;
     esac
     [ $(( $(date +%s) - start )) -ge 90 ] && { echo "  -> $sb still not $want after 90 s: $out" | cut -c1-150; return 1; }
@@ -147,13 +168,13 @@ for sb in "$SANDBOX" "$SANDBOX2"; do
   printf '$ openshell sandbox create --name %s --from %s --provider %s --detach -- sleep infinity\n' "$sb" "$IMG" "$PROVIDER"
   openshell sandbox create --name "$sb" --from "$IMG" --provider "$PROVIDER" --detach \
     --env "AGENT_BASE_URL=$AGENT_BASE_URL" --env "AGENT_MODEL=$AGENT_MODEL" --env "AGENT_KEY_ENV=$AGENT_KEY_ENV" \
-    -- sleep infinity >"$OUT/create-$sb.txt" 2>&1 || { cat "$OUT/create-$sb.txt"; die "could not create sandbox $sb"; }
+    -- sleep infinity >"$OUT/create-$sb.txt" 2>&1 || { cat "$OUT/create-$sb.txt"; CREATED+=("$sb"); die "could not create sandbox $sb"; }
   CREATED+=("$sb")
 done
 for sb in "$SANDBOX" "$SANDBOX2"; do
   printf 'waiting for %s ' "$sb"; i=0
   until ex "$sb" true >/dev/null 2>&1; do
-    i=$((i + 1)); [ $i -ge 45 ] && die "$sb did not become ready in 90 s"; printf '.'; sleep 2
+    i=$((i + 1)); [ $i -ge 150 ] && die "$sb did not become ready in 5 minutes (the first run pulls the image)"; printf '.'; sleep 2
   done; echo "ready"
   # Upload the agent rather than passing it in an environment variable: the
   # gateway caps each environment value at 8 KiB, and a file has no such limit.
@@ -167,7 +188,7 @@ run openshell sandbox list
 
 step "2. What the agent can see: a placeholder, not the key"
 WHO=$(agent whoami 2>&1); echo "$WHO"
-if echo "$WHO" | grep -q "looks like a real API key *: no"; then check "the agent holds a placeholder, not the key" 0
+if echo "$WHO" | grep -q "looks like a real API key *: no — an OpenShell placeholder"; then check "the agent holds a placeholder, not the key" 0
 else
   check "the agent holds a placeholder, not the key" 1
   die "the value in $AGENT_KEY_ENV inside the sandbox looks like a real key. Stopping here: check the provider and profile"
@@ -190,8 +211,11 @@ echo "$PROBE" | grep "unlisted host" | grep -q "DENIED";             check "an u
 echo "$PROBE" | grep "method not in policy" | grep -q "DENIED policy_denied"; check "a disallowed method gets 403 policy_denied" $?
 
 step "5. Start the worker loop (one completion every 5 s)"
-t 900 openshell sandbox exec --name "$SANDBOX" -- "$PY" "$AGENT" work 5 </dev/null > "$OUT/worker.log" 2>&1 &
-WORKER=$!
+( exec openshell sandbox exec --name "$SANDBOX" -- "$PY" "$AGENT" work 5 600 ) </dev/null > "$OUT/worker.log" 2>&1 &
+WORKER=$!                  # the exec itself; the agent also stops on its own after 600 s
+i=0; until grep -q " ok " "$OUT/worker.log" 2>/dev/null; do
+  i=$((i + 1)); [ $i -ge 60 ] && die "the worker loop did not complete a request in 60 s"; sleep 1
+done
 sleep "$PAUSE"; tail -n 3 "$OUT/worker.log"
 
 step "6a. KILL SWITCH, level 1: gateway-wide lockdown (every sandbox, one command)"
@@ -213,7 +237,7 @@ wait_state blocked "$SANDBOX"; check "detach blocks $SANDBOX" $?
 wait_state open "$SANDBOX2";   check "detach leaves $SANDBOX2 working" $?
 tail -n 2 "$OUT/worker.log"
 
-step "7. Evidence: OCSF events from the first agent's supervisor"
+step "7. Evidence: OCSF events from the first agent's supervisor (read before level 3 stops it)"
 SUP=$("$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -E -- "--${SANDBOX}-[0-9a-f]{8}-.*-supervisor$" | head -n 1)
 if [ -n "$SUP" ]; then
   "$DOCKER" logs "$SUP" 2>&1 | grep -E ' OCSF ' > "$OUT/ocsf.log" || true
@@ -223,7 +247,7 @@ else
   echo "(no Docker supervisor container found; with other drivers, read the supervisor log there)"
 fi
 
-step "6d. KILL SWITCH, level 3: stop the sandbox (workspace kept for forensics)"
+step "8. KILL SWITCH, level 3: stop the sandbox (workspace kept for forensics)"
 run openshell sandbox stop "$SANDBOX"
 sleep 3; kill "$WORKER" 2>/dev/null; wait "$WORKER" 2>/dev/null; WORKER=
 LIST=$(openshell sandbox list 2>/dev/null); echo "$LIST"

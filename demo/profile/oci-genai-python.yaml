@@ -1,8 +1,27 @@
-# Local copy of the upstream oci-genai profile for the shutdown demo.
-# Only change: binaries names the Python interpreter of the agent image
-# (ghcr.io/astral-sh/uv:python3.12-bookworm-slim) instead of curl.
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Derived from providers/oci-genai.yaml in NVIDIA/OpenShell. Changes: the id and
+# display name, and `binaries`, which names the Python interpreter of the demo
+# image (ghcr.io/astral-sh/uv:python3.12-bookworm-slim) instead of curl.
+#
+# OCI-side setup, in this order (from the upstream profile):
+#   1. Create the IAM policy BEFORE the key. A key minted before its policy can
+#      stay unauthorized long after the policy lands, and OCI returns the same
+#      401 for an unknown key and an unauthorized one. Least privilege:
+#        allow any-user to use generative-ai-family in compartment id <ocid>
+#          where ALL {request.principal.type='generativeaiapikey'}
+#   2. Create the key in that compartment and region, with an expiry:
+#        oci generative-ai api-key create --compartment-id <ocid> \
+#          --region us-chicago-1 --display-name openshell-agents \
+#          --key-details '[{"keyName":"primary","timeExpiry":"2027-01-01T00:00:00Z"}]'
+#      The sk-... secret is returned once. Rotate with `api-key renew`.
+#   3. Import this profile and store the key in the gateway, never on a command line:
+#        openshell provider profile import --file demo/profile/oci-genai-python.yaml --global
+#        read -rs OCI_GENAI_API_KEY && export OCI_GENAI_API_KEY    # paste the key; nothing is echoed
+#        openshell provider create --name oci-genai-demo --type oci-genai-python \
+#          --credential OCI_GENAI_API_KEY                          # the name alone reads it from the environment
+#        unset OCI_GENAI_API_KEY
 
 id: oci-genai-python
 display_name: OCI Generative AI (Python agent)

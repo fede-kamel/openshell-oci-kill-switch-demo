@@ -19,8 +19,9 @@ Commands:
   whoami            show what the process can see (placeholder, proxy env)
   ask "<prompt>"    one chat completion
   probe             one allowed request and two that the fence must block
-  work [seconds]    status loop: one short completion per interval, forever
+  work [s] [max]    status loop: one short completion every s seconds, for at most max seconds
 """
+import http.client
 import json
 import os
 import ssl
@@ -52,7 +53,9 @@ def ssl_context() -> ssl.SSLContext:
 
 def request(method: str, url: str, body=None) -> tuple[int, str]:
     data = json.dumps(body).encode() if body is not None else None
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KEY}"}
+    headers = {"Content-Type": "application/json"}
+    if urllib.parse.urlparse(url).hostname == HOST:  # the credential only ever goes to its own host
+        headers["Authorization"] = f"Bearer {KEY}"
     for attempt in (1, 2):
         req = urllib.request.Request(url, data=data, method=method, headers=headers)
         try:
@@ -60,14 +63,15 @@ def request(method: str, url: str, body=None) -> tuple[int, str]:
                 return resp.status, resp.read().decode(errors="replace")
         except urllib.error.HTTPError as err:
             return err.code, err.read().decode(errors="replace")
-        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError) as err:
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, http.client.IncompleteRead) as err:
             # The proxy closes in-flight connections when the policy reloads; try once more.
             if attempt == 1:
                 time.sleep(1)
                 continue
             return 0, f"{type(err).__name__}: {err}"
         except Exception as err:  # connect refused by the sandbox, proxy gone, sandbox stopping
-            if "RemoteDisconnected" in repr(err) and attempt == 1:
+            dropped = "RemoteDisconnected" in repr(err) or isinstance(getattr(err, "reason", None), ConnectionError)
+            if dropped and not isinstance(getattr(err, "reason", None), PermissionError) and attempt == 1:
                 time.sleep(1)
                 continue
             return 0, f"{type(err).__name__}: {err}"
@@ -88,14 +92,20 @@ def ask(prompt: str) -> tuple[int, str]:
     return status, text[:200].replace("\n", " ")
 
 
-def looks_real(key: str) -> str:
-    return "yes — stop and check the provider" if key.startswith(("sk-", "sk-or-")) else "no"
+PLACEHOLDER_PREFIX = "openshell:resolve:"  # what OpenShell puts where a credential would be
 
 
 def whoami() -> None:
-    masked = f"{KEY[:4]}… ({len(KEY)} chars)" if KEY else "(unset)"
-    print(f"{KEY_ENV + ' as seen by the agent':<40}: {masked}")
-    print(f"{'looks like a real API key':<40}: {looks_real(KEY)}")
+    # A placeholder is a reference, not a secret, so it is printed in full; anything
+    # else is treated as a possible real key and never printed beyond four characters.
+    if KEY.startswith(PLACEHOLDER_PREFIX):
+        shown, verdict = KEY, "no — an OpenShell placeholder"
+    elif KEY:
+        shown, verdict = f"{KEY[:4]}… ({len(KEY)} chars)", "YES — stop and check the provider"
+    else:
+        shown, verdict = "(unset)", "no — the variable is empty"
+    print(f"{KEY_ENV + ' as seen by the agent':<40}: {shown}")
+    print(f"{'looks like a real API key':<40}: {verdict}")
     for var in sorted(os.environ):
         if var.upper().endswith("_PROXY") or "CERT" in var.upper() or "CA_BUNDLE" in var.upper():
             print(f"{var:<40}: {os.environ[var]}")
@@ -123,9 +133,9 @@ def probe() -> None:
         print(f"{label:<58} -> {verdict:<20} {text[:110].replace(chr(10), ' ')}")
 
 
-def work(interval: float) -> None:
-    n = 0
-    while True:
+def work(interval: float, max_seconds: float) -> None:
+    n, end = 0, time.monotonic() + max_seconds
+    while time.monotonic() < end:
         n += 1
         status, text = ask(f"Status report {n}. Reply with one short upbeat line.")
         stamp = time.strftime("%H:%M:%S")
@@ -147,7 +157,7 @@ def main(argv: list[str]) -> int:
     elif cmd == "probe":
         probe()
     elif cmd == "work":
-        work(float(argv[2]) if len(argv) > 2 else 5.0)
+        work(float(argv[2]) if len(argv) > 2 else 5.0, float(argv[3]) if len(argv) > 3 else 300.0)
     else:
         print(__doc__)
         return 2
