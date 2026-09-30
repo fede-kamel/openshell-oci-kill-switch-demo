@@ -6,7 +6,7 @@ and filed upstream the same day:
 
 | Finding | Upstream issue |
 |---|---|
-| `sandbox exec` reads piped stdin to EOF before starting the command | [NVIDIA/OpenShell#3993](https://github.com/NVIDIA/OpenShell/issues/3993) |
+| `sandbox exec` reads piped stdin to EOF before starting the command | [NVIDIA/OpenShell#3993](https://github.com/NVIDIA/OpenShell/issues/3993), fix in [PR #4006](https://github.com/NVIDIA/OpenShell/pull/4006) |
 | First settings poll after start always reports `provider_env_changed:true` and can drop an in-flight request | [NVIDIA/OpenShell#3994](https://github.com/NVIDIA/OpenShell/issues/3994) |
 
 ## 1. `sandbox exec` blocks on stdin EOF before starting the command
