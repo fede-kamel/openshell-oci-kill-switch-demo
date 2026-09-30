@@ -1,0 +1,6 @@
+
+== 0. Preflight (target: openrouter, provider: does-not-exist, sandboxes: or-agent, or-agent-2) ==
+openshell 0.1.2
+
+ABORT: provider 'does-not-exist' does not exist on this gateway; see the setup lines at the top of this script
+(session log: ./out/demo-20260930-175936.log)

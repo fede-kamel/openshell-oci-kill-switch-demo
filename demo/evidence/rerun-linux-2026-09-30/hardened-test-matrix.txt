@@ -1,0 +1,53 @@
+### 1/2 full run TARGET=oci
+  exit=0
+PASS  the agent holds a placeholder, not the key
+PASS  a real request succeeds through the proxy
+PASS  the allowed request is allowed
+PASS  an unlisted host is refused at connect
+PASS  a disallowed method gets 403 policy_denied
+PASS  lockdown blocks oci-agent
+PASS  lockdown blocks oci-agent-2
+PASS  lifting restores oci-agent
+PASS  lifting restores oci-agent-2
+PASS  detach blocks oci-agent
+PASS  detach leaves oci-agent-2 working
+PASS  stop leaves oci-agent Stopped
+PASS  stop leaves oci-agent-2 Ready
+ALL 13 CHECKS PASSED
+  gateway: no global policy in force
+  demo sandboxes left: 
+### 1/2 full run TARGET=openrouter
+  exit=0
+PASS  the agent holds a placeholder, not the key
+PASS  a real request succeeds through the proxy
+PASS  the allowed request is allowed
+PASS  an unlisted host is refused at connect
+PASS  a disallowed method gets 403 policy_denied
+PASS  lockdown blocks or-agent
+PASS  lockdown blocks or-agent-2
+PASS  lifting restores or-agent
+PASS  lifting restores or-agent-2
+PASS  detach blocks or-agent
+PASS  detach leaves or-agent-2 working
+PASS  stop leaves or-agent Stopped
+PASS  stop leaves or-agent-2 Ready
+ALL 13 CHECKS PASSED
+  gateway: no global policy in force
+  demo sandboxes left: 
+### 3 missing provider
+  exit=1
+ABORT: provider 'does-not-exist' does not exist on this gateway; see the setup lines at the top of this script
+  gateway: no global policy in force
+  demo sandboxes left: 
+### 4 interrupt (SIGTERM) during the lockdown
+  lockdown is in force (Status: Loaded); sending SIGTERM
+  exit=130
+cleanup: lifting the global lockdown this run set
+cleanup: deleted sandbox or-agent
+cleanup: deleted sandbox or-agent-2
+(session log: ks-repo/demo/out/demo-20260930-175936.log)
+  gateway: no global policy in force
+  demo sandboxes left: 
+matrix done
+
+[exited with code 0]

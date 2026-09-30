@@ -1,0 +1,99 @@
+
+== 0. Clean slate ==
+waiting for the previous oci-agent to be purged 
+waiting for the previous oci-agent-2 to be purged 
+
+== 1. Two agent sandboxes on one gateway, one provider attached to both ==
+$ openshell sandbox create --name oci-agent --from ghcr.io/astral-sh/uv:python3.12-bookworm-slim --provider oci-genai-demo --detach --env AGENT_B64=<agent.py> ...
+Created sandbox: oci-agent
+Created sandbox: oci-agent-2
+waiting for exec 
+$ openshell sandbox list
+NAME         CREATED              PHASE
+e2e-or       2026-09-29 18:04:04  Error
+e2e-multi    2026-09-29 18:19:45  Error
+oci-agent    2026-09-30 21:33:23  Ready
+oci-agent-2  2026-09-30 21:33:24  Ready
+
+== 2. What the agent can see: a placeholder, not the key ==
+OCI_GENAI_API_KEY as seen by the agent  : open… (59 chars)
+looks like a real API key               : no
+CURL_CA_BUNDLE                          : /run/openshell-supervisor-ca/material/ca-bundle.crt
+DENO_CERT                               : /run/openshell-supervisor-ca/material/ca.crt
+NODE_EXTRA_CA_CERTS                     : /run/openshell-supervisor-ca/material/ca.crt
+REQUESTS_CA_BUNDLE                      : /run/openshell-supervisor-ca/material/ca-bundle.crt
+SSL_CERT_FILE                           : /run/openshell-supervisor-ca/material/ca-bundle.crt
+model                                   : meta.llama-3.3-70b-instruct
+allowed upstream                        : inference.generativeai.us-chicago-1.oci.oraclecloud.com
+
+== 3. Legitimate work goes through (the proxy injects the real key) ==
+HTTP 200: An autonomous agent should run inside a sandbox to prevent potential security risks and damage to the host system by isolating it from sensitive resources and limiting its ability to cause harm if it behaves maliciously or experiences a fault.
+
+== 4. The fence: anything off-policy is denied before it leaves the sandbox ==
+allowed : POST chat completions on inference.generativeai.us-chicago-1.oci.oraclecloud.com -> HTTP 200 {"id":"chatcmpl-c1c0746e-79a6-45f6-835c-11ba90f35c04","object":"chat.completion","created":1790804018,"model":
+blocked : GET  an unlisted host (example.com)              -> DENIED   URLError: <urlopen error [Errno 13] Permission denied>
+blocked : PUT  on inference.generativeai.us-chicago-1.oci.oraclecloud.com (method not in policy) -> DENIED   {"binary":"/usr/local/bin/python3.12","detail":"PUT /openai/v1/models not permitted by policy","error":"policy
+
+== 5. Start the worker loop (one completion every 5 s) ==
+[21:33:39] ok      #1: Everything is on track and going great!
+
+== 6a. KILL SWITCH, level 1: gateway-wide lockdown (every sandbox, one command) ==
+$ openshell policy set --global --policy ./lockdown.yaml --yes
+✓ Global policy configured (hash: 1b621527d93a, settings revision: 11)
+  -> oci-agent blocked after 6 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+  -> oci-agent-2 blocked after 1 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+[21:33:39] ok      #1: Everything is on track and going great!
+[21:33:55] BLOCKED #2: URLError: <urlopen error [Errno 13] Permission denied>
+
+== 6b. ...and it is reversible: lift the lockdown ==
+$ openshell policy delete --global --yes
+✓ Deleted global setting policy (revision 12)
+  -> oci-agent reachable after 10 s: HTTP 200: Yes, I'm still here. Is there anything I can help you with?
+  -> oci-agent-2 reachable after 5 s: HTTP 200: Yes, I'm still here. Is there anything I can help you with?
+[21:34:00] BLOCKED #3: URLError: <urlopen error [Errno 13] Permission denied>
+[21:34:06] ok      #4: We're making great progress and everything is on track!
+
+== 6c. KILL SWITCH, level 2: take the credential away from ONE sandbox ==
+$ openshell sandbox provider detach oci-agent oci-genai-demo --wait
+oci-agent / oci-genai-demo: revoked (unspecified)
+  Receipt: 0199f3ab-0cbf-43ce-8bb1-fe08217f4224
+  Persisted: 2026-09-30T21:34:11.510774732Z
+  Installed: credentials=true, policy=true, future process environment=true
+  Wait: complete
+  -> oci-agent blocked after 1 s: HTTP 0: URLError: <urlopen error [Errno 13] Permission denied>
+  -> oci-agent-2 reachable after 1 s: HTTP 200: Yes, I am still here. Is there anything I can help you with?
+[21:34:06] ok      #4: We're making great progress and everything is on track!
+[21:34:12] ok      #5: We're making great progress and everything is on track!
+
+== 7. Evidence: OCSF events from the first agent's supervisor ==
+2026-09-30T21:34:00.824Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:00.825Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:01.016Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:01.017Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:03.341Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:03.342Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:04.720Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:16813254263638052759 new_revision:9754802694322051917 policy_changed:true provider_env_changed:
+2026-09-30T21:34:04.730Z OCSF CONFIG:LOADED [INFO] Policy reloaded successfully [policy_hash:477e8e16ac0b90f03d9247323a28a48ec0239b7e9485e5014cc15171c1f2c617] [hash:477e8e16ac0b90f03d9247323a28a48ec02
+2026-09-30T21:34:14.750Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:9754802694322051917 new_revision:16709790733110020355 policy_changed:true provider_env_changed:
+2026-09-30T21:34:14.764Z OCSF CONFIG:LOADED [INFO] Policy reloaded successfully [policy_hash:a45a8ff3564f00ae26cbd66f1131f37eedd8b54a66fbfec103d65a204c19c6e8] [hash:a45a8ff3564f00ae26cbd66f1131f37eedd
+2026-09-30T21:34:15.101Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:15.102Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+(114 events; full log: ./out/ocsf.log)
+
+== 6d. KILL SWITCH, level 3: stop the sandbox (workspace kept for forensics) ==
+$ openshell sandbox stop oci-agent
+✓ Stopped sandbox oci-agent
+$ openshell sandbox list
+NAME         CREATED              PHASE
+e2e-or       2026-09-29 18:04:04  Error
+e2e-multi    2026-09-29 18:19:45  Error
+oci-agent    2026-09-30 21:33:23  Stopped
+oci-agent-2  2026-09-30 21:33:24  Ready
+
+(worker log: ./out/worker.log)
+
+== 8. Cleanup ==
+$ openshell sandbox delete oci-agent
+✓ Sandbox oci-agent deletion accepted; cleanup is pending
+$ openshell sandbox delete oci-agent-2
+✓ Sandbox oci-agent-2 deletion accepted; cleanup is pending

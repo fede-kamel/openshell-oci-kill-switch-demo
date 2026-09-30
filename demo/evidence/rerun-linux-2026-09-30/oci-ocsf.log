@@ -1,0 +1,114 @@
+2026-09-30T21:33:23.982Z OCSF CONFIG:DISCOVERY [INFO] Server returned no policy; attempting local discovery
+2026-09-30T21:33:24.012Z OCSF CONFIG:CONFIGURED [INFO] OPA runtime binary identity mode configured [source:proto require_binary_identity:true] [source:proto]
+2026-09-30T21:33:24.041Z OCSF CONFIG:ENABLED [INFO] TLS termination enabled: ephemeral CA generated
+2026-09-30T21:33:24.041Z OCSF CONFIG:READY [INFO] Policy DNS connected to isolation boundary
+2026-09-30T21:33:24.041Z OCSF NET:LISTEN [INFO] 127.0.0.1:3128
+2026-09-30T21:33:24.057Z OCSF SSH:LISTEN [INFO]
+2026-09-30T21:33:24.078Z OCSF CONFIG:LOADED [INFO] Acknowledged initial policy revision as loaded [version:1] [hash:477e8e16ac0b90f03d9247323a28a48ec0239b7e9485e5014cc15171c1f2c617]
+2026-09-30T21:33:24.081Z OCSF NET:OPEN [INFO] host.docker.internal:17670
+2026-09-30T21:33:25.268Z OCSF EVENT [INFO] ssh relay open (channel_id=6eb542a6-e02e-4ed2-95d9-4ebe1a4d31ca, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:25.268Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:25.363Z OCSF EVENT [INFO] ssh relay closed (channel_id=6eb542a6-e02e-4ed2-95d9-4ebe1a4d31ca, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:25.437Z OCSF EVENT [INFO] ssh relay open (channel_id=9d1edcf8-ac3b-4ac7-9e5e-6987a44eb3b3, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:25.438Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:25.659Z OCSF EVENT [INFO] ssh relay closed (channel_id=9d1edcf8-ac3b-4ac7-9e5e-6987a44eb3b3, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:25.694Z OCSF EVENT [INFO] ssh relay open (channel_id=656a9a0c-aa54-47e5-adb7-5492ec96ebeb, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:25.694Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:25.984Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=de7d801c-9f10-470c-922f-505a83db612c
+2026-09-30T21:33:26.011Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:26.063Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:34.069Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:9754802694322051917 new_revision:9754802694322051917 policy_changed:false provider_env_changed:true]
+2026-09-30T21:33:34.076Z OCSF CONFIG:CONFIGURED [INFO] OPA runtime binary identity mode configured [source:proto require_binary_identity:true] [source:proto]
+2026-09-30T21:33:34.078Z OCSF NET:OPEN [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:L7 tunnel closed before inspection because policy changed: policy generation is stale [captured_generation:1 current_generation:2]]
+2026-09-30T21:33:35.155Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=d85ee154-9fde-4b6d-86e1-610bb1232f24
+2026-09-30T21:33:35.186Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:35.240Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:37.168Z OCSF EVENT [INFO] ssh relay closed (channel_id=656a9a0c-aa54-47e5-adb7-5492ec96ebeb, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:37.204Z OCSF EVENT [INFO] ssh relay open (channel_id=94086570-671a-42ec-9ef9-131ad1e4f385, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:37.204Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:37.604Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=44f64352-a15d-4928-9436-17cdd740ebb9
+2026-09-30T21:33:37.637Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:37.667Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:38.575Z OCSF NET:REFUSE [MED] DENIED example.com [reason:policy_dns_ineligible]
+2026-09-30T21:33:38.575Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name example.com synthetic=198.18.0.3 for TCP policy review
+2026-09-30T21:33:38.576Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> example.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:33:38.650Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=3e0c7523-3974-4c6e-afdb-4fb38c870949
+2026-09-30T21:33:38.681Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:38.710Z OCSF HTTP:PUT [MED] DENIED PUT http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/models [policy:_provider_oci_genai_demo engine:l7] [reason:L7_REQUEST deny PUT inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/models reason=PUT /openai/v1/models not permitted by policy]
+2026-09-30T21:33:38.724Z OCSF EVENT [INFO] ssh relay closed (channel_id=94086570-671a-42ec-9ef9-131ad1e4f385, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:38.762Z OCSF EVENT [INFO] ssh relay open (channel_id=955f2ab2-469d-4ae5-ad2e-5a4bb1aa12a9, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:38.762Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:39.068Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=8eeee426-6f29-4cbc-8a1f-e83f36ceec47
+2026-09-30T21:33:39.097Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:39.146Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:44.662Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=5b23a896-9e9c-4434-a341-8679b09f174d
+2026-09-30T21:33:44.689Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:44.718Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:49.385Z OCSF EVENT [INFO] ssh relay open (channel_id=743da566-81d2-4bf9-8c84-c3f9bfea30a5, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:49.385Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:49.651Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=5b119d74-9940-4bbc-8358-0b7d00975a28
+2026-09-30T21:33:49.677Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:33:49.702Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:33:54.694Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:9754802694322051917 new_revision:16813254263638052759 policy_changed:true provider_env_changed:true]
+2026-09-30T21:33:54.700Z OCSF CONFIG:CONFIGURED [INFO] OPA runtime binary identity mode configured [source:proto require_binary_identity:true] [source:proto]
+2026-09-30T21:33:54.702Z OCSF CONFIG:LOADED [INFO] Policy reloaded successfully (global) [policy_hash:1b621527d93a4bf142d82c81efd9c3245ddedeca7c6f210dc8e433d193473629 global_version:6] [hash:1b621527d93a4bf142d82c81efd9c3245ddedeca7c6f210dc8e433d193473629]
+2026-09-30T21:33:54.702Z OCSF NET:OPEN [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:L7 tunnel closed before inspection because policy changed: policy generation is stale [captured_generation:2 current_generation:3]]
+2026-09-30T21:33:54.703Z OCSF NET:OPEN [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:L7 tunnel closed before inspection because policy changed: policy generation is stale [captured_generation:2 current_generation:3]]
+2026-09-30T21:33:55.758Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:33:55.758Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:33:55.758Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:33:55.758Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:33:55.759Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:33:55.759Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:33:55.768Z OCSF EVENT [INFO] ssh relay closed (channel_id=743da566-81d2-4bf9-8c84-c3f9bfea30a5, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:56.176Z OCSF EVENT [INFO] ssh relay open (channel_id=c1faa514-3bdf-47de-ba91-2f21ee0eaec5, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:56.176Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:56.433Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:33:56.433Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:33:56.434Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:33:56.443Z OCSF EVENT [INFO] ssh relay closed (channel_id=c1faa514-3bdf-47de-ba91-2f21ee0eaec5, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:58.470Z OCSF EVENT [INFO] ssh relay open (channel_id=6ce4d223-ed6d-4ed5-849a-eef72ab23b2a, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:33:58.471Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:33:58.677Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:33:58.677Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:33:58.678Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:33:58.690Z OCSF EVENT [INFO] ssh relay closed (channel_id=6ce4d223-ed6d-4ed5-849a-eef72ab23b2a, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:00.722Z OCSF EVENT [INFO] ssh relay open (channel_id=2759807b-7ef6-429e-b8e1-9789c0dd3d4d, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:00.722Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:34:00.824Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:00.824Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:34:00.825Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:01.016Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:01.016Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:34:01.017Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:01.026Z OCSF EVENT [INFO] ssh relay closed (channel_id=2759807b-7ef6-429e-b8e1-9789c0dd3d4d, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:03.058Z OCSF EVENT [INFO] ssh relay open (channel_id=3c76dad2-5bc2-4e25-ba36-59544387a3e0, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:03.058Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:34:03.341Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:03.341Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:34:03.342Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:03.352Z OCSF EVENT [INFO] ssh relay closed (channel_id=3c76dad2-5bc2-4e25-ba36-59544387a3e0, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:04.720Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:16813254263638052759 new_revision:9754802694322051917 policy_changed:true provider_env_changed:true]
+2026-09-30T21:34:04.727Z OCSF CONFIG:CONFIGURED [INFO] OPA runtime binary identity mode configured [source:proto require_binary_identity:true] [source:proto]
+2026-09-30T21:34:04.730Z OCSF CONFIG:LOADED [INFO] Policy reloaded successfully [policy_hash:477e8e16ac0b90f03d9247323a28a48ec0239b7e9485e5014cc15171c1f2c617] [hash:477e8e16ac0b90f03d9247323a28a48ec0239b7e9485e5014cc15171c1f2c617]
+2026-09-30T21:34:05.380Z OCSF EVENT [INFO] ssh relay open (channel_id=d400c9c5-8d2f-4a07-a4bf-367e997047af, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:05.381Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:34:05.601Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=1f437263-f8a4-430d-b76f-c471d6b25634
+2026-09-30T21:34:05.632Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:34:05.684Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:34:05.891Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=c24a4f68-be92-4bd7-87b1-da0b448aaa0c
+2026-09-30T21:34:05.920Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:34:05.948Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:34:06.805Z OCSF EVENT [INFO] ssh relay closed (channel_id=d400c9c5-8d2f-4a07-a4bf-367e997047af, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:11.957Z OCSF CONFIG:PUBLISHED [INFO] Policy DNS mapped inference.generativeai.us-chicago-1.oci.oraclecloud.com resolved=64.181.150.234 synthetic=198.18.0.2 ports=443 mapping_id=44d0325f-7063-41e1-89f7-36ae24ceb8d5
+2026-09-30T21:34:11.988Z OCSF NET:OPEN [INFO] ALLOWED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [policy:_provider_oci_genai_demo engine:opa]
+2026-09-30T21:34:12.016Z OCSF HTTP:POST [INFO] ALLOWED POST http://inference.generativeai.us-chicago-1.oci.oraclecloud.com:443/openai/v1/chat/completions [policy:_provider_oci_genai_demo engine:l7]
+2026-09-30T21:34:14.750Z OCSF CONFIG:DETECTED [INFO] Settings poll: config change detected [old_revision:9754802694322051917 new_revision:16709790733110020355 policy_changed:true provider_env_changed:true]
+2026-09-30T21:34:14.762Z OCSF CONFIG:CONFIGURED [INFO] OPA runtime binary identity mode configured [source:proto require_binary_identity:true] [source:proto]
+2026-09-30T21:34:14.764Z OCSF CONFIG:LOADED [INFO] Policy reloaded successfully [policy_hash:a45a8ff3564f00ae26cbd66f1131f37eedd8b54a66fbfec103d65a204c19c6e8] [hash:a45a8ff3564f00ae26cbd66f1131f37eedd8b54a66fbfec103d65a204c19c6e8]
+2026-09-30T21:34:14.880Z OCSF EVENT [INFO] ssh relay open (channel_id=4bbc26e1-5f36-43e7-870a-86f66ba774e0, target=unix:/run/openshell/ssh.sock)
+2026-09-30T21:34:14.880Z OCSF SSH:OPEN [INFO] ALLOWED
+2026-09-30T21:34:15.101Z OCSF NET:REFUSE [MED] DENIED inference.generativeai.us-chicago-1.oci.oraclecloud.com [reason:policy_dns_ineligible]
+2026-09-30T21:34:15.101Z OCSF CONFIG:OBSERVATION [INFO] Policy DNS staged unapproved name inference.generativeai.us-chicago-1.oci.oraclecloud.com synthetic=198.18.0.4 for TCP policy review
+2026-09-30T21:34:15.102Z OCSF NET:OPEN [MED] DENIED /usr/local/bin/python3.12(0) -> inference.generativeai.us-chicago-1.oci.oraclecloud.com:443 [reason:transparent_tcp_policy_denied]
+2026-09-30T21:34:15.112Z OCSF EVENT [INFO] ssh relay closed (channel_id=4bbc26e1-5f36-43e7-870a-86f66ba774e0, target=unix:/run/openshell/ssh.sock)

@@ -34,8 +34,8 @@ is decided by the supervisor next to it and the gateway above it.
 | Level | Command | Scope | Time to effect (observed) | Reversible |
 |---|---|---|---|---|
 | 0 | policy rules (`enforce`) | per request | immediate | n/a |
-| 1 | `openshell policy set --global --policy lockdown.yaml --yes` | every sandbox on the gateway | 2 to 9 s (docs: within about 10 s) | `openshell policy delete --global --yes`, 3 to 11 s |
-| 2 | `openshell sandbox provider detach <sandbox> <provider> --wait` | one sandbox | 0 to 1 s with `--wait` | `sandbox provider attach` |
+| 1 | `openshell policy set --global --policy lockdown.yaml --yes` | every sandbox on the gateway | 2 to 9 s after the command returns (docs: within about 10 s) | `openshell policy delete --global --yes`, 3 to 16 s |
+| 2 | `openshell sandbox provider detach <sandbox> <provider> --wait` | one sandbox | 2 to 7 s, complete when `--wait` returns | `sandbox provider attach` |
 | 3 | `openshell sandbox stop <sandbox>` | one sandbox | immediate | `sandbox start`, workspace preserved |
 | 4 | `openshell sandbox delete <sandbox>` | one sandbox | immediate, cleanup pending | no |
 
@@ -55,6 +55,26 @@ Observations:
   the failure mode is a connect-time denial, not an upstream 401.
 - `sandbox stop` preserves the workspace (docs: filesystem persistence
   follows the compute driver). It is the right first move for forensics.
+
+### Timed trials (added after the first run)
+
+The "0 s" in the first run's level-2 output was measured from the moment the
+command returned, which hides the wait itself. Three timed trials on a second
+machine (WSL2, target OpenRouter), with an agent inside the sandbox making one
+request per second — `demo/evidence/rerun-linux-2026-09-30/timing-trials.txt`:
+
+| Switch | Trial 1 | Trial 2 | Trial 3 |
+|---|---|---|---|
+| `detach --wait`: time for the command to return | 1.9 s | 6.5 s | 6.4 s |
+| `detach --wait`: running agent refused, after return | 0.8 s | 0.0 s | 0.3 s |
+| `detach --wait`: fresh exec after return | refused | refused | refused |
+| `policy set --global`: running agent refused, after return | 6.7 s | 9.1 s | 7.0 s |
+
+So `--wait` really does wait for the supervisor to install the change (the
+change lands on the same settings poll as a lockdown), and once it returns no
+process in the sandbox, running or new, gets through. The `Persisted:`
+timestamp in the detach receipt is when the gateway stored the change, not
+when the command returned; do not measure from it.
 
 ## 3. What the agent actually sees
 

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Derived from providers/openrouter.yaml in NVIDIA/OpenShell. Changes: the id,
+# `binaries` names the Python interpreter of the demo image instead of OpenCode,
+# and the endpoint is narrowed from `access: read-write` to explicit rules --
+# POST and GET under /api/v1/ only -- so a PUT is refused at the HTTP layer.
+#
+#   openshell provider profile import --file demo/profile/openrouter-python.yaml --global
+#   openshell provider create --name or-demo --type openrouter-python \
+#     --credential OPENROUTER_API_KEY="$OPENROUTER_API_KEY"
+
+id: openrouter-python
+display_name: OpenRouter (Python agent)
+description: OpenRouter chat completions for a Python agent, POST and GET under /api/v1 only
+category: inference
+inference_capable: true
+credentials:
+  - name: api_key
+    description: OpenRouter API key
+    env_vars: [OPENROUTER_API_KEY]
+    required: true
+    auth_style: bearer
+    header_name: authorization
+discovery:
+  credentials: [api_key]
+endpoints:
+  - host: openrouter.ai
+    port: 443
+    protocol: rest
+    enforcement: enforce
+    rules:
+      - allow: { method: POST, path: "/api/v1/**" }
+      - allow: { method: GET, path: "/api/v1/**" }
+binaries: [/usr/local/bin/python3.12]

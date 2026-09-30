@@ -1,0 +1,10 @@
+# Kill-switch timing trials, 2026-09-30, OpenShell 0.1.2 (Docker driver, WSL2), target OpenRouter
+# One sandbox; a running agent inside it makes one request per second (running-agent-requests.log).
+# Times are measured from the moment the operator's command returned.
+
+detach  trial 1: --wait took 1.9s | fresh exec: HTTP 0: URLError: <urlopen error [Errno  (0.4s) | running agent: last ok +0.0s, first refused +0.8s after --wait returned
+lockdown trial 1: running agent first refused +6.7s after the command returned
+detach  trial 2: --wait took 6.5s | fresh exec: HTTP 0: URLError: <urlopen error [Errno  (0.4s) | running agent: last ok +0.0s, first refused +0.0s after --wait returned
+lockdown trial 2: running agent first refused +9.1s after the command returned
+detach  trial 3: --wait took 6.4s | fresh exec: HTTP 0: URLError: <urlopen error [Errno  (0.3s) | running agent: last ok +0.0s, first refused +0.3s after --wait returned
+lockdown trial 3: running agent first refused +7.0s after the command returned
