@@ -1,0 +1,21 @@
+gateway: Status: Connected
+removed provider oci-genai-demo
+removed provider or-demo
+cloned cf7c49e fede-kamel <fkamelhar@gmail.com>
+### OCI — README quick start, verbatim except the key comes from ~/.secrets
+
+✓ Created provider oci-genai-demo
+exit=0
+ALL 13 CHECKS PASSED
+### OpenRouter — README quick start
+
+✓ Created provider or-demo
+exit=0
+ALL 13 CHECKS PASSED
+### after
+no global policy in force
+demo sandboxes left: 
+working tree: 0 changed files (out/ is gitignored)
+certify done
+
+[exited with code 0]

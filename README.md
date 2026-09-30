@@ -42,11 +42,17 @@ Three full runs on 2026-09-30, OpenShell 0.1.2 with the Docker driver:
 | Detach credential from one agent | blocked; other unaffected | blocked; other unaffected | blocked; other unaffected |
 | Stop one sandbox | `Stopped` next to `Ready` | same | same |
 
-Lockdown and lift times are from a fresh request after the command returned.
+Across eight complete runs, lockdown took 0 to 10 s and the lift 1 to 19 s,
+measured with a fresh request after the command returned.
 Three further timed trials against an agent that was already running show the
 lockdown reaching it 7 to 9 s after the command, and `detach --wait` taking 2
 to 7 s to return — by which point the running agent is already cut off. See
 [`docs/insights.md`](docs/insights.md#timed-trials-added-after-the-first-run).
+
+**Certified from a fresh clone.** The public repository, cloned and run with
+exactly the Quick start below, passes all 13 checks against both OCI
+Generative AI and OpenRouter, and leaves no global policy and no sandboxes
+behind (`demo/evidence/rerun-linux-2026-09-30/certify-fresh-clone-*`).
 
 Every decision is an OCSF event. Evidence:
 [`demo/evidence/`](demo/evidence/) (first run) and

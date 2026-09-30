@@ -34,7 +34,7 @@ is decided by the supervisor next to it and the gateway above it.
 | Level | Command | Scope | Time to effect (observed) | Reversible |
 |---|---|---|---|---|
 | 0 | policy rules (`enforce`) | per request | immediate | n/a |
-| 1 | `openshell policy set --global --policy lockdown.yaml --yes` | every sandbox on the gateway | 2 to 9 s after the command returns (docs: within about 10 s) | `openshell policy delete --global --yes`, 3 to 16 s |
+| 1 | `openshell policy set --global --policy lockdown.yaml --yes` | every sandbox on the gateway | 0 to 10 s after the command returns (docs: within about 10 s) | `openshell policy delete --global --yes`, 1 to 19 s |
 | 2 | `openshell sandbox provider detach <sandbox> <provider> --wait` | one sandbox | 2 to 7 s, complete when `--wait` returns | `sandbox provider attach` |
 | 3 | `openshell sandbox stop <sandbox>` | one sandbox | immediate | `sandbox start`, workspace preserved |
 | 4 | `openshell sandbox delete <sandbox>` | one sandbox | immediate, cleanup pending | no |
