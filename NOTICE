@@ -1,0 +1,8 @@
+OpenShell + OCI kill switch demo
+Copyright (c) 2026 Federico Kamelhar
+
+demo/profile/oci-genai-python.yaml is derived from providers/oci-genai.yaml in
+NVIDIA/OpenShell (https://github.com/NVIDIA/OpenShell), Copyright (c) 2025-2026
+NVIDIA CORPORATION & AFFILIATES, licensed under the Apache License 2.0. The only
+change is the `binaries` list, which names the Python interpreter of the demo
+image instead of curl.

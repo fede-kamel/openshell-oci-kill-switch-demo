@@ -1,0 +1,5 @@
+# Gateway-wide lockdown: no network egress for any sandbox on this gateway.
+# Apply with:   openshell policy set --global --policy policies/lockdown.yaml
+# Remove with:  openshell policy delete --global
+version: 1
+network_policies: {}

@@ -1,0 +1,5 @@
+[19:39:04] ok      #1: Everything is on track and going great!
+[19:39:10] ok      #2: We're making great progress and on track to meet our goals!
+[19:39:15] BLOCKED #3: URLError: <urlopen error [Errno 13] Permission denied>
+[19:39:20] BLOCKED #4: URLError: <urlopen error [Errno 13] Permission denied>
+[19:39:33] BLOCKED #5: URLError: <urlopen error [Errno 13] Permission denied>
