@@ -1,0 +1,44 @@
+## least-privilege matrix — user codex-poc-prov, group codex-poc-provisioners, 2026-10-02T19:31Z
+## policy grants: manage virtual-network-family, object-family, instance-family in compartment codex-poc only; read objectstorage-namespaces in tenancy
+## ALLOWED — inside compartment codex-poc
+$ oci os bucket list --compartment-id <ocid> --all --query length(data) --raw-output (as codex-poc-prov)
+-> exit 0 — allowed: list
+
+$ oci os bucket create --compartment-id <ocid> --name iamdemo-153105 --freeform-tags {"codex-poc":"iamdemo"} --query data.name --raw-output (as codex-poc-prov)
+iamdemo-153105
+-> exit 0 — allowed: create
+
+$ oci os bucket delete --namespace-name yzhbfkqxqsx9 --bucket-name iamdemo-153105 --force (as codex-poc-prov)
+-> exit 0 — allowed: delete
+
+## REFUSED — same service, outside the compartment
+$ oci os bucket list --compartment-id <ocid> --all (as codex-poc-prov)
+ServiceError:
+{
+    "code": "NamespaceNotFound",
+    "message": "You do not have authorization to perform this request, or the requested resource could not be found.",
+-> exit 1 — refused by OCI
+
+$ oci network vcn list --compartment-id <ocid> --all (as codex-poc-prov)
+ServiceError:
+{
+    "code": "NotAuthorizedOrNotFound",
+    "message": "Authorization failed or requested resource not found.",
+-> exit 1 — refused by OCI
+
+## REFUSED — a family the policy does not grant, even inside codex-poc
+$ oci db autonomous-database list --compartment-id <ocid> --all (as codex-poc-prov)
+ServiceError:
+{
+    "code": "Forbidden",
+    "message": "Forbidden",
+-> exit 1 — refused by OCI
+
+## REFUSED — the identity surface
+$ oci iam policy list --compartment-id <ocid> --all (as codex-poc-prov)
+ServiceError:
+{
+    "code": "NotAuthorizedOrNotFound",
+    "message": "Authorization failed or requested resource not found.",
+-> exit 1 — refused by OCI
+

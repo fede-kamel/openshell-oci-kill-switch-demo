@@ -1,0 +1,28 @@
+## policy conformance check — profile oci-genai-python, sandbox policy-probe, 2026-10-02T19:13Z
+
+Created sandbox: policy-probe
+
+  [0.0s] Requesting compute...
+[0.0s] Sandbox allocated
+[0.0s] Pulling image ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+[0.0s] Image already present
+[0.1s] Starting sandbox Container created
+(exec ready after ~0s)
+## granted by the profile, and everything else — the agent's own probe
+$ openshell sandbox exec --name policy-probe -- /usr/local/bin/python3.12 /tmp/demo/agent.py probe
+allowed : POST chat completions on inference.generativeai.us-chicago-1.oci.oraclecloud.com -> HTTP 200             {"id":"chatcmpl-1da8b140-932b-43d5-ae1a-7f377ea0f0e1","object":"chat.completion","created":1790968418,"model":
+blocked : GET  an unlisted host (example.com)              -> DENIED               URLError: <urlopen error [Errno 13] Permission denied>
+blocked : PUT  on inference.generativeai.us-chicago-1.oci.oraclecloud.com (method not in policy) -> DENIED policy_denied {"binary":"/usr/local/bin/python3.12","detail":"PUT /openai/v1/models not permitted by policy","error":"policy
+## another OCI service host (Object Storage API) — not in the profile, so no rule exists for it
+$ openshell sandbox exec --name policy-probe -- /usr/local/bin/python3.12 -c import urllib.request,ssl,os
+ctx=ssl.create_default_context(cafile=os.environ.get("SSL_CERT_FILE"))
+try:
+    urllib.request.urlopen("https://objectstorage.us-chicago-1.oraclecloud.com/n/",context=ctx,timeout=15)
+    print("REACHED (unexpected)")
+except Exception as e:
+    print("refused at connect:", type(e).__name__, "-", e)
+refused at connect: URLError - <urlopen error [Errno 13] Permission denied>
+## cleanup
+$ openshell sandbox delete policy-probe
+✓ Sandbox policy-probe deletion accepted; cleanup is pending
+No sandboxes found.

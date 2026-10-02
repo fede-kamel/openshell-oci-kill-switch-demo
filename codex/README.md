@@ -13,6 +13,9 @@ lines.
 
 ## Use it
 
+**Watch it happen first:** [the Codex UI operating a sandbox, 78 s](../videos/focus2-codex-ui-2x.mp4) · [all recordings](../videos/).
+
+
 Install [Codex](https://developers.openai.com/codex) (`npm install -g
 @openai/codex`) and sign in. Do not export your API key in the shell you start
 Codex from; Codex passes its environment to the commands it runs, and the

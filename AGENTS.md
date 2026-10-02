@@ -42,6 +42,8 @@ specification before running anything.
 | `demo/evidence/` | logs from the published runs |
 | `examples/` | OpenAI SDK and LangChain in a sandbox, with `run-examples.sh` and a Dockerfile |
 | `tests/matrix.sh` | the full test matrix; needs both providers and a gateway you own |
+| `videos/` | recordings of real runs; see `videos/README.md` |
+| `evidence/` | transcripts behind every claim, all identifiers redacted |
 | `codex/` | the specification, prompt, and bootstrap prompt for building this elsewhere |
 | `docs/` | insights, upstream status, findings, figures |
 

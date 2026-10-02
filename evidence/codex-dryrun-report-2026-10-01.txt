@@ -1,0 +1,20 @@
+Environment : Darwin arm64, Docker 29.5.2, OpenShell 0.1.2, driver Docker  
+Repository  : dcbd4acdbdf4d03aefe5d2b7163971e8d17b8c7a Thu Oct 1 17:30:12 2026 -0400  
+Target      : oci, provider oci-genai-demo, model meta.llama-3.3-70b-instruct, region us-chicago-1
+
+Scene                                   Result
+What the agent sees in its key variable  placeholder
+A real request                           HTTP 200
+An unlisted host                         refused at connect
+A method the policy does not allow       403 policy_denied
+Lock down every sandbox                  both blocked in 3 s and 0 s
+Lift the lockdown                        both answering in 17 s and 1 s
+Take the credential from one agent       cut off in 0 s; the other kept working
+Stop one sandbox                         Stopped next to Ready
+OpenAI SDK, LangChain + tool             pass, pass
+Automated checks                         13 / 13, examples 2 / 2
+
+Post-conditions : global policy none, demo sandboxes none, worker none inferred from no sandboxes/no demo containers, key material none  
+Logs            : `demo/out/demo-20261001-173123-7520.log`, `demo/out/worker.log`, `demo/out/ocsf.log`
+
+Skipped or changed: skipped provider setup because `oci-genai-demo` already existed with type `oci-genai-python`; skipped OCI CLI profile checks because no OCI commands were needed for an existing provider; skipped teardown per operator instruction. The runbook’s session log path exists but is empty because the local command sandbox blocked `/dev/fd` process-substitution logging; worker and OCSF logs were written, and the runbook output passed. Direct `pgrep`/`ps` process checks were blocked by this environment, so worker cleanup was verified by gateway/Docker state instead.

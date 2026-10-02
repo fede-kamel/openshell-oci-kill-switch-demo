@@ -1,0 +1,31 @@
+OCIDs omitted; commands shown with placeholders where an OCID was used.
+
+scripts/preflight.sh </dev/null
+
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key iam compartment list --compartment-id <tenancy-ocid> --all --query 'sort_by(data[].{name:name,state:"lifecycle-state"}, &name)'
+
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key iam compartment create --compartment-id <tenancy-ocid> --name codex-poc --description "Codex OCI POC. Everything in here is created and deleted by the POC." --freeform-tags '{"codex-poc":"20261002-0901","created-by":"codex"}' --wait-for-state ACTIVE --max-wait-seconds 300 --query data.id --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key iam compartment get --compartment-id <compartment-ocid> --query 'data."lifecycle-state"' --raw-output
+
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key network vcn create --compartment-id <compartment-ocid> --cidr-block 10.77.0.0/16 --display-name codex-poc-vcn --dns-label codexpoc --freeform-tags '{"codex-poc":"20261002-0901","created-by":"codex"}' --wait-for-state AVAILABLE --max-wait-seconds 300 --query data.id --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key network vcn get --vcn-id <vcn-ocid> --query 'data."lifecycle-state"' --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key network subnet create --compartment-id <compartment-ocid> --vcn-id <vcn-ocid> --cidr-block 10.77.1.0/24 --display-name codex-poc-subnet --dns-label sub1 --prohibit-public-ip-on-vnic true --freeform-tags '{"codex-poc":"20261002-0901","created-by":"codex"}' --wait-for-state AVAILABLE --max-wait-seconds 300 --query data.id --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key network subnet get --subnet-id <subnet-ocid> --query 'data."lifecycle-state"' --raw-output
+
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket create --compartment-id <compartment-ocid> --name codex-poc-20261002-0901 --freeform-tags '{"codex-poc":"20261002-0901","created-by":"codex"}' --query data.name --raw-output
+printf 'hello from codex-poc 20261002-0901\n' > hello.txt
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os object put --bucket-name codex-poc-20261002-0901 --name hello.txt --file hello.txt --force
+
+scripts/teardown.sh 20261002-0901 </dev/null
+
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket get --bucket-name codex-poc-20261002-0901 --query 'data.{name:name,created:"time-created",tags:"freeform-tags"}'
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket list --compartment-id <compartment-ocid> --all --query 'data[?"freeform-tags"."codex-poc"==`20261002-0901`].{name:name,tags:"freeform-tags"}'
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket list --compartment-id <compartment-ocid> --all --query 'data[].name' --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket get --bucket-name codex-poc-20261002-0901 --query 'data."compartment-id"' --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket get --bucket-name codex-poc-20261002-0901 --query 'data."freeform-tags"."codex-poc"' --raw-output
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os object bulk-delete --bucket-name codex-poc-20261002-0901 --force
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket delete --bucket-name codex-poc-20261002-0901 --force
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key os bucket get --bucket-name codex-poc-20261002-0901 --query data.name --raw-output
+
+scripts/preflight.sh </dev/null
+oci --profile API_FREE_TIER --region ca-toronto-1 --auth api_key iam compartment list --compartment-id <tenancy-ocid> --all --query 'sort_by(data[].{name:name,state:"lifecycle-state"}, &name)'

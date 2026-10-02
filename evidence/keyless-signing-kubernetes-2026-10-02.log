@@ -1,0 +1,13 @@
+## keyless signing on the kubernetes driver — branch gateway, sandbox sign2, 2026-10-02T20:34Z
+   OCI_KEY_ID in sandbox: openshell:resolve:env:…
+PASS  1 placeholder only, key never in the sandbox
+   GET /n/ -> HTTP 200  body "yzhbfkqxqsx9"
+PASS  2 unsigned request from sandbox; proxy signs; OCI answers 200
+   bucket list codex-poc -> HTTP 200
+PASS  3 allowed scope through the tunnel: 200 inside codex-poc
+   root compartment -> HTTP 404  {"code":"NamespaceNotFound","message":"You do not have authorization to perform this reque
+PASS  4 same tunnel, outside compartment: refused by OCI IAM
+   identity host -> exit 7 
+PASS  5 host with no rule: refused by absence
+
+KEYLESS SIGNING ON KUBERNETES: ALL 5 CHECKS PASSED

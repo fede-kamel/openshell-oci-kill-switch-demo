@@ -19,10 +19,33 @@ Companion to the blog post
 > as an individual open-source contributor. This is not an Oracle publication,
 > product commitment, or statement of Oracle's plans.
 
+## Build it with Codex
+
+You do not have to learn the OpenShell or OCI command lines to run this demo:
+hand the prompt in [`codex/`](codex/) to [OpenAI Codex](https://developers.openai.com/codex)
+and it builds, verifies, and cleans up everything below, with the one
+key-handling step kept in your own terminal. The spec was adversarially
+reviewed by Codex itself and then reproduced blind by fresh sessions — the
+transcripts are in [`evidence/`](evidence/).
+
+![Codex as the entry point](docs/figures/codex-entry-point.png)
+
+```shell
+codex -c sandbox_workspace_write.network_access=true \
+  --add-dir ~/.config/openshell --add-dir ~/.docker \
+  "$(cat codex/PROMPT.md)"
+```
+
+**Watch it happen:** [the Codex UI operating a sandbox, 78 s](videos/focus2-codex-ui-2x.mp4) ·
+[provisioning and reclaiming scoped OCI resources, 105 s](videos/focus3-codex-ui-3x.mp4) ·
+[the safety net and the keyless preview, 28 s](videos/focus4.mp4) — all recordings in [`videos/`](videos/).
+
 ## Where things are
 
 | You want | Go to |
 |---|---|
+| Build it with an agent | [`codex/`](codex/) — the spec and prompts Codex follows; [`evidence/`](evidence/) holds the run transcripts |
+| Watch it | [`videos/`](videos/) — the real Codex-UI recordings and paced replays |
 | Run the demo | [`demo/demo.sh`](demo/demo.sh) — the runbook, `TARGET=oci` or `TARGET=openrouter` |
 | The agent | [`demo/agent/agent.py`](demo/agent/agent.py) — standard-library Python, any OpenAI-compatible API |
 | What the agent may do | [`demo/profile/`](demo/profile/) — one provider profile per upstream |
@@ -237,6 +260,10 @@ case it checks that no global policy, sandbox or worker process is left.
 ## Repository layout
 
 ```
+codex/                           build it with a coding agent: spec, prompts, evidence summary
+videos/                          recordings: the real Codex UI, replays, the safety-net clip
+evidence/                        transcripts behind every claim (incl. keyless 5/5, IAM matrix)
+.agents/skills/                  in-repo agent skill for this demo
 demo/demo.sh                     the runbook
 demo/agent/agent.py              the agent
 demo/profile/                    oci-genai-python.yaml, openrouter-python.yaml
@@ -256,7 +283,7 @@ docs/oracle-openshell-guide.mdx  a fuller OCI guide
 | Phase | What it gives OpenShell users | Status |
 |---|---|---|
 | Bearer profile `oci-genai` | OCI Generative AI through the OpenAI-compatible endpoint with an injected API key | merged, [#3904](https://github.com/NVIDIA/OpenShell/pull/3904) |
-| Proxy-side request signing `credential_signing: oci` | native OCI APIs (Object Storage, native Generative AI) with placeholders in the sandbox | open, [#3962](https://github.com/NVIDIA/OpenShell/pull/3962) |
+| Proxy-side request signing `credential_signing: oci` | native OCI APIs with placeholders in the sandbox | open, [#3962](https://github.com/NVIDIA/OpenShell/pull/3962) — previewed live from a branch build: [`evidence/keyless-signing-kubernetes-2026-10-02.log`](evidence/keyless-signing-kubernetes-2026-10-02.log) |
 | Gateway-minted principals | no long-lived key anywhere: instance, resource, and OKE workload principals | open draft, [#3975](https://github.com/NVIDIA/OpenShell/pull/3975) |
 
 ## License
