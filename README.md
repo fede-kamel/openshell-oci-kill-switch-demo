@@ -283,8 +283,8 @@ docs/oracle-openshell-guide.mdx  a fuller OCI guide
 | Phase | What it gives OpenShell users | Status |
 |---|---|---|
 | Bearer profile `oci-genai` | OCI Generative AI through the OpenAI-compatible endpoint with an injected API key | merged, [#3904](https://github.com/NVIDIA/OpenShell/pull/3904) |
-| Proxy-side request signing `credential_signing: oci` | native OCI APIs with placeholders in the sandbox | open, [#3962](https://github.com/NVIDIA/OpenShell/pull/3962) — previewed live from a branch build: [`evidence/keyless-signing-kubernetes-2026-10-02.log`](evidence/keyless-signing-kubernetes-2026-10-02.log) |
-| Gateway-minted principals | no long-lived key anywhere: instance, resource, and OKE workload principals | open draft, [#3975](https://github.com/NVIDIA/OpenShell/pull/3975) |
+| Proxy-side request signing `credential_signing: oci` | native OCI APIs with placeholders in the sandbox | draft pending community acceptance, [#3962](https://github.com/NVIDIA/OpenShell/pull/3962), rebased on v0.1.7 main 2026-11-04 — previewed live from a branch build: [`evidence/keyless-signing-kubernetes-2026-10-02.log`](evidence/keyless-signing-kubernetes-2026-10-02.log) |
+| Gateway-minted principals | no long-lived key anywhere: instance, resource, and OKE workload principals | draft pending community acceptance, [#3975](https://github.com/NVIDIA/OpenShell/pull/3975), stacked on #3962 |
 
 ## License
 
